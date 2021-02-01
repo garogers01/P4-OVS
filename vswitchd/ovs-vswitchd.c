@@ -26,6 +26,7 @@
 #endif
 
 #include "bridge.h"
+#include "p4device.h"
 #include "command-line.h"
 #include "compiler.h"
 #include "daemon.h"
@@ -109,7 +110,10 @@ main(int argc, char *argv[])
     unixctl_command_register("exit", "[--cleanup]", 0, 1,
                              ovs_vswitchd_exit, &exit_args);
 
+    /*TODO: init() calls for p4device and bridge mutually exclusive?*/
+    /*FIXME: BUG: Any print before while loop are not showing in debug log?*/
     bridge_init(remote);
+    p4device_init();
     free(remote);
 
     exiting = false;
@@ -125,6 +129,8 @@ main(int argc, char *argv[])
             simap_destroy(&usage);
         }
         bridge_run();
+        /*TODO: Order of bridge and p4device calls matters? */
+        p4device_run();
         unixctl_server_run(unixctl);
         netdev_run();
 
@@ -141,6 +147,8 @@ main(int argc, char *argv[])
         }
     }
     bridge_exit(cleanup);
+    /*TODO: Order of bridge and p4device calls matters? */
+    p4device_exit();
     unixctl_server_destroy(unixctl);
     service_stop();
     vlog_disable_async();
