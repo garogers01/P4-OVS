@@ -462,6 +462,81 @@ AC_DEFUN([OVS_CHECK_DPDK], [
   AM_CONDITIONAL([DPDK_NETDEV], test "$DPDKLIB_FOUND" = true)
 ])
 
+dnl OVS_CHECK_P4SDE
+dnl
+dnl Configure P4SDE source tree
+AC_DEFUN([OVS_CHECK_P4SDE], [
+  AC_ARG_WITH([p4sde],
+              [AC_HELP_STRING([--with-p4sde=/path/to/p4sde],
+                              [Specify the P4SDE build directory])],
+              [have_p4sde=true])
+
+  AC_MSG_CHECKING([whether P4SDE is enabled])
+  if test "$have_p4sde" != true || test "$with_p4sde" = no; then
+    AC_MSG_RESULT([no])
+    P4SDELIB_FOUND=false
+  else
+    AC_MSG_RESULT([yes])
+    case "$with_p4sde" in
+      yes)
+        P4SDE_AUTO_DISCOVER="true"
+        PKG_CHECK_MODULES([P4SDE],
+            [libbfutils libbfsys libdriver libbf_switchd_lib],
+            [P4SDE_INCLUDE="$P4SDE_CFLAGS"],
+            [P4SDE_INCLUDE="-I/usr/local/include -I/usr/include"
+             P4SDE_LIB="-lbf_switchd_lib -lbfsys -lbfutils -ldriver"])
+        ;;
+      *)
+        P4SDE_AUTO_DISCOVER="false"
+        P4SDE_INCLUDE_PATH="$with_p4sde/include"
+        P4SDE_INCLUDE="-I$P4SDE_INCLUDE_PATH"
+        P4SDE_LIB_DIR="$with_p4sde/lib"
+        ;;
+    esac
+
+    ovs_save_CFLAGS="$CFLAGS"
+    ovs_save_LDFLAGS="$LDFLAGS"
+    save_LIBS=$LIBS
+
+    P4SDE_LIB="-lbf_switchd_lib -lbfsys -lbfutils -ldriver"
+    CFLAGS="$CFLAGS $P4SDE_INCLUDE"
+    LIBS="$P4SDE_LIB $save_LIBS"
+
+    if test "$P4SDE_AUTO_DISCOVER" = "false"; then
+      LDFLAGS="$LDFLAGS -L${P4SDE_LIB_DIR}"
+    fi
+
+    AC_MSG_CHECKING([whether linking with P4SDE works])
+    AC_LINK_IFELSE(
+      [AC_LANG_PROGRAM([#include <bfsys/bf_sal/bf_sys_intf.h>
+                        #include <bf_switchd/bf_switchd.h>],
+                       [bf_switchd_context_t *switchd_ctx;
+                        bf_switchd_lib_init(switchd_ctx);])],
+      [AC_MSG_RESULT([yes])
+       P4SDELIB_FOUND=true],
+      [AC_MSG_RESULT([no])
+       if test "$P4SDE_AUTO_DISCOVER" = "true"; then
+         AC_MSG_ERROR(m4_normalize([
+            Could not find P4SDE library in default search path,
+            Use --with-p4sde to specify the P4SDE library installed in
+            non-standard location]))
+       else
+         AC_MSG_ERROR([Could not find P4SDE libraries in $P4SDE_LIB_DIR])
+       fi
+      ])
+
+    CFLAGS="$ovs_save_CFLAGS"
+    LDFLAGS="$ovs_save_LDFLAGS"
+    if test "$P4SDE_AUTO_DISCOVER" = "false"; then
+      OVS_LDFLAGS="$OVS_LDFLAGS -L$P4SDE_LIB_DIR"
+    fi
+    OVS_CFLAGS="$OVS_CFLAGS $P4SDE_INCLUDE"
+    AC_DEFINE([P4OVS], [1], [System uses the P4PROTO module.])
+  fi
+
+  AM_CONDITIONAL([P4OVS], test "$P4SDELIB_FOUND" = true)
+])
+
 dnl OVS_GREP_IFELSE(FILE, REGEX, [IF-MATCH], [IF-NO-MATCH])
 dnl
 dnl Greps FILE for REGEX.  If it matches, runs IF-MATCH, otherwise IF-NO-MATCH.
