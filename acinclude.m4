@@ -484,7 +484,7 @@ AC_DEFUN([OVS_CHECK_P4SDE], [
             [libbfutils libbfsys libdriver libbf_switchd_lib],
             [P4SDE_INCLUDE="$P4SDE_CFLAGS"],
             [P4SDE_INCLUDE="-I/usr/local/include -I/usr/include"
-             P4SDE_LIB="-lbf_switchd_lib -lbfsys -lbfutils -ldriver"])
+             P4SDE_LIB="-lbf_switchd_lib -lbfsys -lbfutils -ldriver -lpython3.4m"])
         ;;
       *)
         P4SDE_AUTO_DISCOVER="false"
@@ -498,7 +498,7 @@ AC_DEFUN([OVS_CHECK_P4SDE], [
     ovs_save_LDFLAGS="$LDFLAGS"
     save_LIBS=$LIBS
 
-    P4SDE_LIB="-lbf_switchd_lib -lbfsys -lbfutils -ldriver"
+    P4SDE_LIB="-lbf_switchd_lib -lbfsys -lbfutils -ldriver -lpython3.4m"
     CFLAGS="$CFLAGS $P4SDE_INCLUDE"
     LIBS="$P4SDE_LIB $save_LIBS"
 
