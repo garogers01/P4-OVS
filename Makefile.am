@@ -92,6 +92,8 @@ EXTRA_DIST = \
 	$(MAN_ROOTS) \
 	Vagrantfile \
 	Vagrantfile-FreeBSD \
+        p4runtime \
+        .gitmodules \
 	.mailmap
 bin_PROGRAMS =
 sbin_PROGRAMS =

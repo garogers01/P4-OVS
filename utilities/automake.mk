@@ -3,7 +3,6 @@ bin_PROGRAMS += \
 	utilities/ovs-testcontroller \
 	utilities/ovs-dpctl \
 	utilities/ovs-ofctl \
-	utilities/ovs-p4ctl \
 	utilities/ovs-vsctl
 bin_SCRIPTS += utilities/ovs-docker \
 	utilities/ovs-pki \
@@ -14,6 +13,7 @@ bin_SCRIPTS += utilities/ovs-docker \
 	utilities/ovs-l3ping \
 	utilities/ovs-parse-backtrace \
 	utilities/ovs-test \
+	utilities/ovs-p4ctl \
 	utilities/ovs-vlan-test
 scripts_SCRIPTS += \
 	utilities/ovs-check-dead-ifs \
@@ -57,6 +57,8 @@ EXTRA_DIST += \
 	utilities/ovs-vlan-test.in \
 	utilities/ovs-vsctl-bashcomp.bash \
 	utilities/checkpatch.py \
+	utilities/ovs-p4ctl.c \
+	utilities/ovs-p4ctl.in \
         utilities/docker/Makefile \
         utilities/docker/ovs-override.conf \
         utilities/docker/start-ovs \
