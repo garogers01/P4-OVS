@@ -27,6 +27,7 @@
 
 #include "bridge.h"
 #include "command-line.h"
+#include "p4proto/p4proto.h"
 #include "compiler.h"
 #include "daemon.h"
 #include "dirs.h"
@@ -110,6 +111,7 @@ main(int argc, char *argv[])
                              ovs_vswitchd_exit, &exit_args);
 
     bridge_init(remote);
+    p4proto_init();
     free(remote);
 
     exiting = false;
@@ -125,6 +127,7 @@ main(int argc, char *argv[])
             simap_destroy(&usage);
         }
         bridge_run();
+        p4proto_run();
         unixctl_server_run(unixctl);
         netdev_run();
 
@@ -141,6 +144,7 @@ main(int argc, char *argv[])
         }
     }
     bridge_exit(cleanup);
+    p4proto_exit();
     unixctl_server_destroy(unixctl);
     service_stop();
     vlog_disable_async();
