@@ -57,7 +57,6 @@ EXTRA_DIST += \
 	utilities/ovs-vlan-test.in \
 	utilities/ovs-vsctl-bashcomp.bash \
 	utilities/checkpatch.py \
-	utilities/ovs-p4ctl.c \
 	utilities/ovs-p4ctl.in \
         utilities/docker/Makefile \
         utilities/docker/ovs-override.conf \
@@ -116,10 +115,6 @@ utilities_ovs_dpctl_LDADD = lib/libopenvswitch.la
 utilities_ovs_ofctl_SOURCES = utilities/ovs-ofctl.c
 utilities_ovs_ofctl_LDADD = \
 	ofproto/libofproto.la \
-	lib/libopenvswitch.la
-
-utilities_ovs_p4ctl_SOURCES = utilities/ovs-p4ctl.c
-utilities_ovs_p4ctl_LDADD = \
 	lib/libopenvswitch.la
 
 utilities_ovs_vsctl_SOURCES = utilities/ovs-vsctl.c
