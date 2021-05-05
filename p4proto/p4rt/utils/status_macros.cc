@@ -6,6 +6,7 @@
 
 #include <absl/strings/str_cat.h>
 #include <absl/base/optimization.h>
+#include <gflags/gflags.h>
 
 #include "status_macros.h"
 #include "logging.h"

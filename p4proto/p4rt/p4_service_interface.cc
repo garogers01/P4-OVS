@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include <absl/strings/str_split.h>
+#include <gflags/gflags.h>
 
 #include "p4_service.h"
 #include "p4_service_interface.h"
@@ -35,11 +36,10 @@ std::unique_ptr<P4Service> p4_service_ = NULL;
 #if 0
 using namespace ::stratum::barefoot;
 BfInterface* bfIntf;
-#endif //bfIntf
+#endif /* bfIntf */
 
-// Set the channel arguments to match the defualt keep-alive parameters set by
-// the google3 side net/grpc clients.
-//
+/* Set the channel arguments to match the defualt keep-alive parameters set by
+ * the google3 side net/grpc clients. */
 void SetGrpcServerKeepAliveArgs(::grpc::ServerBuilder* builder) {
     builder->AddChannelArgument(GRPC_ARG_KEEPALIVE_TIME_MS,
                                 FLAGS_grpc_keepalive_time_ms);
@@ -83,12 +83,10 @@ enum status_code p4_server_init(const char* port_details)
     return status;
 }
 
-/*
- *An API that does  P4 service registration and starts the P4 server.
- *This API also instantiates the BfInterface singletion class for
- *interacting with the southbond interface of the Bfnode C wrapper library.
-*/
-enum status_code p4_server_run()
+/* An API that does  P4 service registration and starts the P4 server.
+ * This API also instantiates the BfInterface singletion class for
+ * interacting with the southbond interface of the Bfnode C wrapper library. */
+enum status_code p4_server_run(void)
 {
     enum status_code status = SUCCESS;
     p4_service_ = absl::make_unique<P4Service>();
@@ -115,14 +113,14 @@ enum status_code p4_server_run()
         bf_sde_install, bf_switchd_cfg, bf_switchd_background);
 
     bfIntf = BfInterface::GetSingleton();
-#endif  //bfIntf
+#endif  /* bfIntf */
 
     external_server_->Wait();
     return status;
 }
 
 /* An API that does the server shutdown and teardown of the P4 service. */
-enum status_code p4_server_shutdown()
+enum status_code p4_server_shutdown(void)
 {
     ::util::Status u_status = ::util::OkStatus();
     enum status_code status = SUCCESS;

@@ -1,6 +1,7 @@
 #include <config.h>
 #include <errno.h>
 #include <string.h>
+#include <pthread.h>
 
 #include "unixctl.h"
 #include "openvswitch/vlog.h"
@@ -10,36 +11,75 @@
 #include "p4proto.h"
 #include "p4proto-provider.h"
 
+#include "p4rt/p4_service_interface.h"
+
 VLOG_DEFINE_THIS_MODULE(p4proto);
+
+/* This URL is used by external gNMI, gNOI and P4Runtime clients.
+ * TCP port 9339 is an IANA-reserved port for gNMI and gNOI.
+ * TCP port 9559 is an IANA-reserved port for P4Runtime. */
+const char grpc_server_ports[] = "0.0.0.0:9339,0.0.0.0:9559";
 
 /* All p4 devices, indexed by name. */
 static struct hmap all_p4devices = HMAP_INITIALIZER(&all_p4devices);
 
 static unixctl_cb_func p4proto_dump_cache;
 
+pthread_t p4_server_tid;
+
+void *
+p4_server_start(void *data OVS_UNUSED)
+{
+    enum status_code rc;
+
+    p4_server_init(grpc_server_ports);
+
+    rc = p4_server_run();
+    if (rc != SUCCESS) {
+        VLOG_ERR("Cannot start P4 Server, returned with error %d", rc);
+    }
+
+    return NULL;
+}
+
 void
 p4proto_init(void)
 {
-    VLOG_DBG("Func called: %s", __func__);
-    // TODO: P4runtime(grpc) Server interaction initialize here.
+    int rc;
+
     unixctl_command_register("p4device/dump-cache", "[p4-device-id/all]", 1, 1,
                              p4proto_dump_cache, NULL);
+
+    rc = pthread_create(&p4_server_tid, NULL, p4_server_start, NULL);
+    if (rc) {
+        VLOG_DBG("P4 Server thread creation failed, error %d", rc);
+        return;
+    }
+
+    pthread_setname_np(p4_server_tid, "p4_server");
+    VLOG_DBG("P4 Server thread with ID %lu spawned", p4_server_tid);
 }
 
+void p4_server_cleanup(void)
+{
+    pthread_cancel(p4_server_tid);
+    p4_server_shutdown();
+}
+
+/* Handling all deinit functionality */
 void
 p4proto_deinit(void)
 {
     VLOG_DBG("Func called: %s", __func__);
-    //TODO: GrpcServerShutdown();
-    //TODO: GrpcServerCleanup();
+    p4_server_cleanup();
 }
 
 /* Create p4proto structure and initialize structure members. */
 void
-p4proto_create(uint64_t device_id) {
+p4proto_create(uint64_t device_id)
+{
     struct p4proto *p4p;
 
-    VLOG_DBG("Func called: %s", __func__);
     p4p = xzalloc(sizeof *p4p);
 
     p4p->dev_id = device_id;
@@ -54,7 +94,6 @@ p4proto_destroy(uint64_t device_id)
 {
     struct p4proto *p4p;
 
-    VLOG_DBG("Func called: %s", __func__);
     p4p = p4device_lookup(device_id);
 
     if (p4p) {
@@ -175,14 +214,23 @@ p4proto_update_config_file(uint64_t device_id, const char *file_path)
 {
     struct p4proto *p4p;
 
-    VLOG_DBG("Func called: %s", __func__);
     p4p = p4device_lookup(device_id);
 
     if (p4p) {
-        p4p->config_file = xstrdup(file_path);
-        VLOG_DBG("[%s]: Updated config file :%s: for P4 device %"PRIu64,
-                 __func__, file_path, device_id);
-        /* TODO send an update event to SDE about the config file*/
+        if (!p4p->config_file) {
+            p4p->config_file = xstrdup(file_path);
+            VLOG_DBG("[%s]: Added config file :%s: for P4 device %"PRIu64,
+                     __func__, file_path, device_id);
+            /* TODO send an Add event to SDE about the config file*/
+        } else if (strcmp(file_path, p4p->config_file)) {
+            /* TODO send an delete event to SDE about old config file*/
+            VLOG_DBG("[%s]: Updated config file from :%s: to :%s: for "
+                     "P4 device %"PRIu64, __func__, p4p->config_file,
+                     file_path, device_id);
+            free(p4p->config_file);
+            p4p->config_file = xstrdup(file_path);
+            /* TODO send an Add event to SDE about the new config file*/
+        }
     }
 }
 
@@ -193,7 +241,6 @@ p4proto_update_bridge(uint64_t device_id, struct hmap_node *br_node,
 {
     struct p4proto *p4p;
 
-    VLOG_DBG("Func called: %s", __func__);
     p4p = p4device_lookup(device_id);
 
     if (p4p && !hmap_first_with_hash(&p4p->bridges, hash_string(br_name, 0))) {
@@ -210,7 +257,6 @@ p4proto_remove_bridge(struct hmap_node *br_node, const char *br_name)
 {
     struct p4proto *p4p;
 
-    VLOG_DBG("Func called: %s", __func__);
     HMAP_FOR_EACH(p4p, node, &all_p4devices) {
         if (hmap_first_with_hash(&p4p->bridges, hash_string(br_name, 0))) {
             VLOG_DBG("[%s]: Deleted bridge %s from P4 device %"PRIu64,

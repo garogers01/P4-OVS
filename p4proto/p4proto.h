@@ -50,6 +50,10 @@ struct hmap_node * get_bridge_node(const char *br_name);
 
 void p4proto_dump_bridge_names(struct ds *ds, struct hmap *bridges);
 
+void* p4_server_start(void *data);
+
+void p4_server_cleanup(void);
+
 #ifdef  __cplusplus
 }
 #endif

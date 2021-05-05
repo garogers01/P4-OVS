@@ -19,14 +19,13 @@ enum status_code {
 /* An API that does initialization and adds listen port(s) to the server. */
 enum status_code p4_server_init(const char* port_details);
 
-/*
- *An API that does  P4 service registration and starts the P4 server.
- *This API also instantiates the BfInterface singletion class for
- *interacting with the southbond interface of the Bfnode C wrapper library. */
-enum status_code p4_server_run();
+/* An API that does  P4 service registration and starts the P4 server.
+ * This API also instantiates the BfInterface singletion class for
+ * interacting with the southbond interface of the Bfnode C wrapper library. */
+enum status_code p4_server_run(void);
 
 /* An API that does the server shutdown and teardown of the P4 service. */
-enum status_code p4_server_shutdown();
+enum status_code p4_server_shutdown(void);
 
 #ifdef  __cplusplus
 }
