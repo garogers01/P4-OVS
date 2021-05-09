@@ -202,6 +202,11 @@ def encodeIPv4(ip_addr_string):
     return socket.inet_aton(ip_addr_string)
 
 
+def encodeIPv4_base10(ip_addr_string):
+    packedIP = socket.inet_aton(ip_addr_string)
+    return struct.unpack("!L", packedIP)[0]
+
+
 def decodeIPv4(encoded_ip_addr):
     return socket.inet_ntoa(encoded_ip_addr)
 
@@ -741,7 +746,7 @@ def parse_action(action):
     if (len(act_fields) > 1):
         params = act_fields[1].split(')')[0]
         act_data = params.split(',')
-        act_data = [a for a in act_data]
+        act_data = [encodeIPv4_base10(a) if matchesIPv4(a) else a for a in act_data]
     else:
         act_data = ['']
     return action_name, act_data
