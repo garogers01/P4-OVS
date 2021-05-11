@@ -146,6 +146,7 @@ AC_CONFIG_FILES([
     ovsdb/libovsdb.sym
     ofproto/libofproto.sym
     p4proto/libp4proto.sym
+    p4proto/p4rt/libp4rt.sym
     lib/libsflow.sym
     lib/libopenvswitch.sym
     vtep/libvtep.sym])
@@ -210,6 +211,7 @@ AC_CONFIG_FILES(lib/libopenvswitch.pc)
 AC_CONFIG_FILES(lib/libsflow.pc)
 AC_CONFIG_FILES(ofproto/libofproto.pc)
 AC_CONFIG_FILES(p4proto/libp4proto.pc)
+AC_CONFIG_FILES(p4proto/p4rt/libp4rt.pc)
 AC_CONFIG_FILES(ovsdb/libovsdb.pc)
 AC_CONFIG_FILES(include/openvswitch/version.h)
 
@@ -218,6 +220,12 @@ AC_CONFIG_COMMANDS([include/openflow/openflow.h.stamp])
 
 AC_CONFIG_COMMANDS([utilities/bugtool/dummy], [:])
 AC_CONFIG_COMMANDS([ipsec/dummy], [:])
+
+AC_CHECK_PROG([PROTOC], [protoc], [protoc])
+AS_IF([test "x${PROTOC}" == "x"],
+    [AC_MSG_ERROR([ProtoBuf compiler "protoc" not found.])])
+
+PKG_CHECK_MODULES([PYTHON], [python-3.6], , [path = /usr/local/lib])
 
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES])
 

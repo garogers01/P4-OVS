@@ -1,0 +1,50 @@
+This directory will contain files related to p4 server autobuild.
+This P4 server intercats with any P4 client over gRPC.
+
+In our use case, this module gets initialized from the P4-OVS component
+in the north-bound direction. And in ths south-bound direction, it
+interacts with the bfNode interface library and makes use of P4 SDE stack
+to program the P4 target device.
+
+This P4 server library code depends on the below open soure packages
+to be installed in the standard library path.
+* glog - https://github.com/google/glog.git
+* abseil - https://github.com/abseil/abseil-cpp.git
+* cctz - https://github.com/google/cctz.git
+* grpc (v1.17.2) - https://github.com/google/grpc.git
+* protobuf (v3.6.1)  - https://github.com/google/protobuf.git
+* gflags
+* python3.6/dist-packages
+* protoc compiler  - https://grpc.io/docs/protoc-installation/
+
+Significant portion of the source code for the P4 server module is
+extracted form the open source stratum source code.
+  git clone https://github.com/stratum/stratum.git
+
+List of files extracted(with or without modification) from the stratum are:
+p4proto/p4rt/p4_service.h
+p4proto/p4rt/p4_service.cc
+p4proto/p4rt/common/channel.h
+p4proto/p4rt/common/channel_internal.h
+p4proto/p4rt/common/channel_writer_wrapper.h
+p4proto/p4rt/common/forwarding_pipeline_configs.proto
+p4proto/p4rt/common/server_writer_wrapper.h
+p4proto/p4rt/common/writer_interface.h
+p4proto/p4rt/utils/cleanup.h
+p4proto/p4rt/utils/error.h
+p4proto/p4rt/utils/error.cc
+p4proto/p4rt/utils/error.proto
+p4proto/p4rt/utils/integral_types.h
+p4proto/p4rt/utils/logging.h
+p4proto/p4rt/utils/logging.cc
+p4proto/p4rt/utils/macros.h
+p4proto/p4rt/utils/posix_error_space.h
+p4proto/p4rt/utils/posix_error_space.cc
+p4proto/p4rt/utils/status.h
+p4proto/p4rt/utils/status.cc
+p4proto/p4rt/utils/status_macros.h
+p4proto/p4rt/utils/status_macros.cc
+p4proto/p4rt/utils/statusor.h
+p4proto/p4rt/utils/statusor.cc
+p4proto/p4rt/utils/utils.h
+p4proto/p4rt/utils/utils.cc

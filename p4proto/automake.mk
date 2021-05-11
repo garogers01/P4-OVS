@@ -12,6 +12,8 @@ p4proto_libp4proto_la_SOURCES = \
 
 p4proto_libp4proto_la_CPPFLAGS = $(AM_CPPFLAGS)
 p4proto_libp4proto_la_CFLAGS = $(AM_CFLAGS)
+p4proto_libp4proto_la_LIBADD = p4proto/p4rt/libp4rt.la
+p4proto_libp4proto_la_LIBADD += -lstdc++
 
 pkgconfig_DATA += \
 	p4proto/libp4proto.pc

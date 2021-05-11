@@ -17,6 +17,7 @@ vswitchd_ovs_vswitchd_SOURCES = \
 vswitchd_ovs_vswitchd_LDADD = \
 	ofproto/libofproto.la \
 	p4proto/libp4proto.la \
+	p4proto/p4rt/libp4rt.la \
 	lib/libsflow.la \
 	lib/libopenvswitch.la
 vswitchd_ovs_vswitchd_LDFLAGS = $(AM_LDFLAGS) $(DPDK_vswitchd_LDFLAGS)
