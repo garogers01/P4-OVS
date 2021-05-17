@@ -7,7 +7,7 @@
 // #define MAX_PROGS 256
 
 struct p4proto {
-    struct hmap_node hmap_node; /* In global 'all_p4protos' hmap. */
+    struct hmap_node node;      /* In global 'all_p4devices' hmap. */
     const struct p4proto_class *p4proto_class;
 
     char *type;                 /* Datapath type. */
@@ -15,15 +15,11 @@ struct p4proto {
 
     // TODO: Placeholder - P4Info describing a P4 program.
 
-    /* Device ID used by P4Runtime to identify bridge. */
-    uint64_t dev_id;
+    uint64_t dev_id;            /* Device ID used by P4Runtime. */
+    char *config_file;          /* config file path. */
 
-    /* Datapath. */
+    struct hmap bridges;        /* "struct bridge"s indexed by name. */
 };
-
-
-/* P4Runtime provider interface.
- * This interface takes the best from OpenFlow provider. */
 
 /* TODO: Implement callbacks for P4runtime(grpc) and BfNode handling*/
 struct p4proto_class {

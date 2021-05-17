@@ -127,7 +127,6 @@ main(int argc, char *argv[])
             simap_destroy(&usage);
         }
         bridge_run();
-        p4proto_run();
         unixctl_server_run(unixctl);
         netdev_run();
 

@@ -5,6 +5,7 @@ CLEANFILES += \
 
 vswitchd_ovs_vswitchd_SOURCES = \
 	p4proto/p4proto.h \
+	p4proto/p4proto-provider.h \
 	p4proto/p4proto.c \
 	vswitchd/bridge.h \
 	vswitchd/bridge.c \

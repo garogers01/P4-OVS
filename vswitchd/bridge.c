@@ -71,7 +71,7 @@
 #include "lib/vswitch-idl.h"
 #include "xenserver.h"
 #include "vlan-bitmap.h"
-
+#include "p4proto/p4proto.h"
 VLOG_DEFINE_THIS_MODULE(bridge);
 
 COVERAGE_DEFINE(bridge_reconfigure);
@@ -448,6 +448,7 @@ bridge_init(const char *remote)
     ovsdb_idl_omit(idl, &ovsrec_open_vswitch_col_system_version);
     ovsdb_idl_omit_alert(idl, &ovsrec_open_vswitch_col_dpdk_version);
     ovsdb_idl_omit_alert(idl, &ovsrec_open_vswitch_col_dpdk_initialized);
+    ovsdb_idl_omit(idl, &ovsrec_open_vswitch_col_p4_devices);
 
     ovsdb_idl_omit_alert(idl, &ovsrec_bridge_col_datapath_id);
     ovsdb_idl_omit_alert(idl, &ovsrec_bridge_col_datapath_version);
@@ -3328,6 +3329,7 @@ bridge_run(void)
         idl_seqno = ovsdb_idl_get_seqno(idl);
         txn = ovsdb_idl_txn_create(idl);
         bridge_reconfigure(cfg ? cfg : &null_cfg);
+        p4proto_run();
 
         if (cfg) {
             ovsrec_open_vswitch_set_cur_cfg(cfg, cfg->next_cfg);
@@ -3600,7 +3602,7 @@ bridge_destroy(struct bridge *br, bool del)
         HMAP_FOR_EACH_SAFE (mirror, next_mirror, hmap_node, &br->mirrors) {
             mirror_destroy(mirror);
         }
-
+        p4proto_remove_bridge(&br->node, br->name);
         hmap_remove(&all_bridges, &br->node);
         ofproto_destroy(br->ofproto, del);
         hmap_destroy(&br->ifaces);
@@ -5236,4 +5238,76 @@ discover_types(const struct ovsrec_open_vswitch *cfg)
     ovsrec_open_vswitch_set_iface_types(cfg, iface_types, sset_count(&types));
     free(iface_types);
     sset_destroy(&types);
+}
+
+void
+p4proto_dump_bridge_names(struct ds *ds, struct hmap *bridges)
+{
+    struct bridge *bridge;
+
+    /* This loop prints bridge names in between parentheses */
+    ds_put_format(ds, " (");
+    HMAP_FOR_EACH (bridge, node, bridges) {
+        ds_put_format(ds, " %s", bridge->name);
+    }
+    ds_put_format(ds, " )");
+}
+
+
+struct hmap_node *
+get_bridge_node(const char *br_name)
+{
+    struct hmap_node *br_node;
+
+    br_node = hmap_first_with_hash(&all_bridges, hash_string(br_name, 0));
+
+    if (!br_node) {
+        VLOG_ERR("Cannot fetch bridge node for %s", br_name);
+    }
+    return br_node;
+}
+
+void
+p4proto_delete_bridges(struct hmap *bridges, struct hmap *new_p4device_bridges,
+                       uint64_t device_id)
+{
+    struct bridge *bridge, *bridge_next;
+    struct hmap_node *br_node;
+    char *br_name;
+
+    HMAP_FOR_EACH_SAFE (bridge, bridge_next, node, bridges) {
+        br_name = bridge->name;
+        br_node = hmap_first_with_hash(new_p4device_bridges,
+                                       hash_string(br_name, 0));
+        if (!br_node) {
+            VLOG_DBG("[%s]: Deleted bridge %s from P4 device %"PRIu64,
+                     __func__, br_name, device_id);
+            br_node = hmap_first_with_hash(bridges, hash_string(br_name, 0));
+            hmap_remove(bridges, br_node);
+            /* TODO Send an event regarding bridge delete */
+        }
+    }
+}
+
+void
+p4proto_run(void)
+{
+    const struct ovsrec_p4_device *device_cfg;
+    struct shash new_p4_device;
+    uint64_t device_id;
+
+    VLOG_DBG("Func called: %s", __func__);
+
+    shash_init(&new_p4_device);
+    OVSREC_P4_DEVICE_FOR_EACH(device_cfg, idl) {
+        device_id = (uint64_t)*device_cfg->device_id;
+        if (!shash_add_once(&new_p4_device, xasprintf("%"PRIu64, device_id),
+                            device_cfg)) {
+            VLOG_WARN("Device id %"PRIu64" is added twice", device_id);
+        }
+    }
+
+    p4proto_add_del_devices(&new_p4_device);
+
+    shash_destroy(&new_p4_device);
 }
