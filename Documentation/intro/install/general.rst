@@ -59,6 +59,10 @@ https://github.com/openvswitch/ovs.
 
 .. _general-build-reqs:
 
+Submodules (p4runtime)
+-------------
+git submodule update --init --recursive
+
 Build Requirements
 ------------------
 
