@@ -13,7 +13,7 @@ to be installed in the standard library path.
 * cctz - https://github.com/google/cctz.git
 * grpc (v1.17.2) - https://github.com/google/grpc.git
 * protobuf (v3.6.1)  - https://github.com/google/protobuf.git
-* gflags
+* gflags - sudo apt-get install libgflags-dev
 * python3.6/dist-packages
 * protoc compiler  - https://grpc.io/docs/protoc-installation/
 
